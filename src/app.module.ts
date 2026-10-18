@@ -8,6 +8,7 @@ import { validateEnv } from './config/env.validation.js';
 import { DatabaseModule } from './database/database.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { InvoicesModule } from './invoices/invoices.module.js';
+import { WebhooksModule } from './webhooks/webhooks.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { InvoicesModule } from './invoices/invoices.module.js';
     DatabaseModule,
     AuthModule,
     InvoicesModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

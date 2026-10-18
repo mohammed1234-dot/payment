@@ -41,4 +41,12 @@ export class StripeService {
   getCheckoutSession(sessionId: string) {
     return this.stripe.checkout.sessions.retrieve(sessionId);
   }
+
+  constructEvent(payload: Buffer, signature: string) {
+    return this.stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!,
+    );
+  }
 }

@@ -9,7 +9,7 @@ export const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   APP_URL: z.url().default('http://localhost:5173'),
   STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
-  STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_').optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_'),
 });
 
 export type EnvironmentVariables = z.infer<typeof envSchema>;
