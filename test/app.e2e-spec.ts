@@ -1,30 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, VersioningType } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from './../src/app.module.js';
+import { createTestApp } from './create-test-app.js';
 
-// Needs the Postgres from docker-compose.yml and a valid .env (DATABASE_URL).
 describe('Health (e2e)', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-    await app.init();
+  beforeAll(async () => {
+    app = await createTestApp();
   });
 
-  it('GET /v1/health', () => {
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('GET /v1/health is public', () => {
     return request(app.getHttpServer())
       .get('/v1/health')
       .expect(200)
       .expect({ status: 'ok', database: 'up' });
-  });
-
-  afterEach(async () => {
-    await app.close();
   });
 });

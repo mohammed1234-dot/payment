@@ -1,26 +1,73 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto.js';
-import { UpdateAuthDto } from './dto/update-auth.dto.js';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import bcrypt from 'bcryptjs';
+import { UsersRepository } from '../users/users.repository.js';
+import { toUserResponse } from './dto/auth-response.dto.js';
+import type { LoginInput } from './dto/login.dto.js';
+import type { RegisterInput } from './dto/register.dto.js';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    private readonly users: UsersRepository,
+    private readonly jwt: JwtService,
+  ) {}
+
+  async register(input: RegisterInput) {
+    const passwordHash = await bcrypt.hash(input.password, 12);
+
+    try {
+      const user = await this.users.create({
+        name: input.name,
+        email: input.email,
+        passwordHash,
+      });
+
+      return toUserResponse(user);
+    } catch (error: any) {
+      if (error.cause?.code === '23505') {
+        throw new ConflictException('Email is already registered');
+      }
+
+      throw error;
+    }
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async login(input: LoginInput) {
+    const user = await this.users.findByEmail(input.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      input.password,
+      user.passwordHash,
+    );
+
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    return {
+      accessToken: await this.jwt.signAsync({ sub: user.id }),
+      tokenType: 'Bearer' as const,
+      expiresIn: 3600,
+      user: toUserResponse(user),
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+  async me(userId: string) {
+    const user = await this.users.findById(userId);
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    if (!user) {
+      throw new UnauthorizedException();
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    return toUserResponse(user);
   }
 }

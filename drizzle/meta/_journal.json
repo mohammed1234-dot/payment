@@ -15,6 +15,13 @@
       "when": 1792312811764,
       "tag": "0001_status_varchar_with_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792338444333,
+      "tag": "0002_simplify_constraints",
+      "breakpoints": true
     }
   ]
 }

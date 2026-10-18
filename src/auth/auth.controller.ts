@@ -1,34 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
+import { AuthGuard } from './auth.guard.js';
 import { AuthService } from './auth.service.js';
-import { CreateAuthDto } from './dto/create-auth.dto.js';
-import { UpdateAuthDto } from './dto/update-auth.dto.js';
+import { loginSchema, type LoginInput } from './dto/login.dto.js';
+import { registerSchema, type RegisterInput } from './dto/register.dto.js';
+
+const AUTH_THROTTLE = { default: { limit: 5, ttl: 60_000 } };
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Throttle(AUTH_THROTTLE)
+  @Post('register')
+  register(@Body(new ZodValidationPipe(registerSchema)) input: RegisterInput) {
+    return this.authService.register(input);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Throttle(AUTH_THROTTLE)
+  @Post('login')
+  @HttpCode(200)
+  login(@Body(new ZodValidationPipe(loginSchema)) input: LoginInput) {
+    return this.authService.login(input);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @UseGuards(AuthGuard)
+  @Get('me')
+  me(@Req() request: { user: { id: string } }) {
+    return this.authService.me(request.user.id);
   }
 }
