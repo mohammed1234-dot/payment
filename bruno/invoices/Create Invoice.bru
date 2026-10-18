@@ -1,0 +1,34 @@
+meta {
+  name: Create Invoice
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/invoices
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "description": "Website design",
+    "amount": 15000,
+    "currency": "usd"
+  }
+}
+
+script:post-response {
+  bru.setVar("invoiceId", res.getBody().id);
+  bru.setVar("publicToken", res.getBody().publicToken);
+}
+
+tests {
+  test("status 201", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

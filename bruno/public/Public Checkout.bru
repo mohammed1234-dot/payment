@@ -1,0 +1,17 @@
+meta {
+  name: Public Checkout
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/public/invoices/{{publicToken}}/checkout
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

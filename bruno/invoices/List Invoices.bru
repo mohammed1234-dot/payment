@@ -1,0 +1,27 @@
+meta {
+  name: List Invoices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/invoices?page=1&limit=20
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 20
+  ~status: pending
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("status 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

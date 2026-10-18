@@ -1,0 +1,21 @@
+meta {
+  name: Payment Link
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/invoices/{{invoiceId}}/payment-link
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("status 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
