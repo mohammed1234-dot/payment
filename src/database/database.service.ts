@@ -1,26 +1,26 @@
-import { Injectable } from '@nestjs/common';
-import { CreateDatabaseDto } from './dto/create-database.dto.js';
-import { UpdateDatabaseDto } from './dto/update-database.dto.js';
-
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { sql } from 'drizzle-orm';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema/index.js';
+ 
 @Injectable()
-export class DatabaseService {
-  create(createDatabaseDto: CreateDatabaseDto) {
-    return 'This action adds a new database';
+export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+  private pool!: Pool;
+  public db!: NodePgDatabase<typeof schema>;
+ 
+  async onModuleInit() {
+    this.pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.db = drizzle(this.pool, { schema });
   }
 
-  findAll() {
-    return `This action returns all database`;
+
+  async ping(): Promise<void> {
+    await this.db.execute(sql`select 1`);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} database`;
-  }
-
-  update(id: number, updateDatabaseDto: UpdateDatabaseDto) {
-    return `This action updates a #${id} database`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} database`;
+  async onModuleDestroy() {
+    await this.pool.end();
   }
 }
+ 

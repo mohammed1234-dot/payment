@@ -1,12 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service.js';
+import { AppService, type HealthResponse } from './app.service.js';
 
-@Controller()
+@Controller('health')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  /** GET /v1/health: 200 when the API and its database respond, 503 otherwise. */
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  checkHealth(): Promise<HealthResponse> {
+    return this.appService.checkHealth();
   }
 }

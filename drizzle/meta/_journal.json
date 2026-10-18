@@ -5,8 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1791901541496,
-      "tag": "0000_nervous_naoko",
+      "when": 1792312501552,
+      "tag": "0000_init",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792312811764,
+      "tag": "0001_status_varchar_with_checks",
       "breakpoints": true
     }
   ]
