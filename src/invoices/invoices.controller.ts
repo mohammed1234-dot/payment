@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
@@ -49,5 +50,14 @@ export class InvoicesController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.invoicesService.findOne(request.user.id, id);
+  }
+
+  @Post(':id/payment-link')
+  @HttpCode(200)
+  createPaymentLink(
+    @Req() request: { user: { id: string } },
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.invoicesService.createPaymentLink(request.user.id, id);
   }
 }

@@ -3,9 +3,12 @@ import { and, count, desc, eq, gte, lte } from 'drizzle-orm';
 import { DatabaseService } from '../database/database.service.js';
 import {
   invoices,
+  payments,
   type Invoice,
   type NewInvoice,
 } from '../database/schema/index.js';
+import { InvoiceStatus } from '../database/schema/invoice-status.js';
+import { PaymentStatus } from '../database/schema/payment-status.js';
 import type { ListInvoicesInput } from './dto/list-invoices.dto.js';
 
 @Injectable()
@@ -65,5 +68,37 @@ export class InvoicesRepository {
       .where(where);
 
     return { rows, total };
+  }
+
+  async saveCheckoutSession(invoice: Invoice, sessionId: string) {
+    await this.database.db.transaction(async (tx) => {
+      await tx
+        .insert(payments)
+        .values({
+          invoiceId: invoice.id,
+          stripeCheckoutSessionId: sessionId,
+          amount: invoice.amount,
+          currency: invoice.currency,
+          status: PaymentStatus.Pending,
+        })
+        .onConflictDoNothing();
+
+      await tx
+        .update(invoices)
+        .set({ stripeCheckoutSessionId: sessionId })
+        .where(eq(invoices.id, invoice.id));
+    });
+  }
+
+  async markExpired(invoiceId: string) {
+    await this.database.db
+      .update(invoices)
+      .set({ status: InvoiceStatus.Expired })
+      .where(
+        and(
+          eq(invoices.id, invoiceId),
+          eq(invoices.status, InvoiceStatus.Pending),
+        ),
+      );
   }
 }
