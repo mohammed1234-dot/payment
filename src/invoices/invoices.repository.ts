@@ -35,6 +35,15 @@ export class InvoicesRepository {
     return invoice;
   }
 
+  async findBySessionId(sessionId: string): Promise<Invoice | undefined> {
+    const [invoice] = await this.database.db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.stripeCheckoutSessionId, sessionId))
+      .limit(1);
+    return invoice;
+  }
+
   async findByPublicTokenHash(hash: string): Promise<Invoice | undefined> {
     const [invoice] = await this.database.db
       .select()

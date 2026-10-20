@@ -1,0 +1,16 @@
+meta {
+  name: webhook
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/webhooks/stripe
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  forwardAuthorizationHeader: false
+}

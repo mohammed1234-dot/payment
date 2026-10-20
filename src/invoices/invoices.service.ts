@@ -77,6 +77,10 @@ export class InvoicesService {
     return toInvoiceResponse(invoice);
   }
 
+  findBySession(sessionId: string) {
+    return this.invoicesRepository.findBySessionId(sessionId);
+  }
+
   async findPublic(token: string) {
     const invoice = await this.invoicesRepository.findByPublicTokenHash(
       hashToken(token),

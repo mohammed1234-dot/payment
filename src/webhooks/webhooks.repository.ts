@@ -5,6 +5,7 @@ import { invoices, payments, webhookEvents } from '../database/schema/index.js';
 import { InvoiceStatus } from '../database/schema/invoice-status.js';
 import { PaymentStatus } from '../database/schema/payment-status.js';
 import { WebhookEventStatus } from '../database/schema/webhook-events-status.js';
+import { users } from '../database/schema/users.schema.js';
 
 @Injectable()
 export class WebhooksRepository {
@@ -66,50 +67,40 @@ export class WebhooksRepository {
     return invoice;
   }
 
-  async markPaid(
-    paymentId: string,
-    invoiceId: string,
-    paymentIntentId: string | null,
-  ) {
-    await this.database.db.transaction(async (tx) => {
-      await tx
+   async markPaid(paymentId: string, invoiceId: string, paymentIntentId: string | null) {
+    return this.database.db.transaction(async (s) => {
+      await s
         .update(payments)
-        .set({
-          status: PaymentStatus.Succeeded,
-          paidAt: new Date(),
-          stripePaymentIntentId: paymentIntentId,
-        })
-        .where(
-          and(
-            eq(payments.id, paymentId),
-            eq(payments.status, PaymentStatus.Pending),
-          ),
-        );
+        .set({ status: PaymentStatus.Succeeded, paidAt: new Date(), stripePaymentIntentId: paymentIntentId })
+        .where(and(eq(payments.id, paymentId), eq(payments.status, PaymentStatus.Pending)));
 
-      await tx
+      const updated = await s
         .update(invoices)
         .set({ status: InvoiceStatus.Paid, paidAt: new Date() })
-        .where(
-          and(
-            eq(invoices.id, invoiceId),
-            inArray(invoices.status, [
-              InvoiceStatus.Pending,
-              InvoiceStatus.Expired,
-            ]),
-          ),
-        );
+        .where(and(eq(invoices.id, invoiceId), inArray(invoices.status, [InvoiceStatus.Pending, InvoiceStatus.Expired])))
+        .returning({ id: invoices.id });
+
+      return updated.length > 0;
     });
   }
 
-  async updatePendingPayment(sessionId: string, status: PaymentStatus) {
-    await this.database.db
+   async updatePendingPayment(sessionId: string, status: PaymentStatus) {
+    const updated = await this.database.db
       .update(payments)
       .set({ status })
-      .where(
-        and(
-          eq(payments.stripeCheckoutSessionId, sessionId),
-          eq(payments.status, PaymentStatus.Pending),
-        ),
-      );
+      .where(and(eq(payments.stripeCheckoutSessionId, sessionId), eq(payments.status, PaymentStatus.Pending)))
+      .returning({ invoiceId: payments.invoiceId });
+
+    return updated[0]?.invoiceId;
+  }
+  async findownerEmail(invoiceId: string) {
+    const [result] = await this.database.db
+      .select({ email: users.email })
+      .from(invoices)
+      .innerJoin(users, eq(invoices.userId, users.id))
+      .where(eq(invoices.id, invoiceId))
+      .limit(1);
+
+    return result?.email || null;
   }
 }
