@@ -11,11 +11,6 @@ services:
       - '5433:5432'
     volumes:
       - payment_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d payments_db']
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
   redis:
     image: redis:7
@@ -25,11 +20,6 @@ services:
       - '6380:6379'
     volumes:
       - payment_redisdata:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
 volumes:
   payment_pgdata:
