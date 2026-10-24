@@ -67,28 +67,54 @@ export class WebhooksRepository {
     return invoice;
   }
 
-   async markPaid(paymentId: string, invoiceId: string, paymentIntentId: string | null) {
+  async markPaid(
+    paymentId: string,
+    invoiceId: string,
+    paymentIntentId: string | null,
+  ) {
     return this.database.db.transaction(async (s) => {
       await s
         .update(payments)
-        .set({ status: PaymentStatus.Succeeded, paidAt: new Date(), stripePaymentIntentId: paymentIntentId })
-        .where(and(eq(payments.id, paymentId), eq(payments.status, PaymentStatus.Pending)));
+        .set({
+          status: PaymentStatus.Succeeded,
+          paidAt: new Date(),
+          stripePaymentIntentId: paymentIntentId,
+        })
+        .where(
+          and(
+            eq(payments.id, paymentId),
+            eq(payments.status, PaymentStatus.Pending),
+          ),
+        );
 
       const updated = await s
         .update(invoices)
         .set({ status: InvoiceStatus.Paid, paidAt: new Date() })
-        .where(and(eq(invoices.id, invoiceId), inArray(invoices.status, [InvoiceStatus.Pending, InvoiceStatus.Expired])))
+        .where(
+          and(
+            eq(invoices.id, invoiceId),
+            inArray(invoices.status, [
+              InvoiceStatus.Pending,
+              InvoiceStatus.Expired,
+            ]),
+          ),
+        )
         .returning({ id: invoices.id });
 
       return updated.length > 0;
     });
   }
 
-   async updatePendingPayment(sessionId: string, status: PaymentStatus) {
+  async updatePendingPayment(sessionId: string, status: PaymentStatus) {
     const updated = await this.database.db
       .update(payments)
       .set({ status })
-      .where(and(eq(payments.stripeCheckoutSessionId, sessionId), eq(payments.status, PaymentStatus.Pending)))
+      .where(
+        and(
+          eq(payments.stripeCheckoutSessionId, sessionId),
+          eq(payments.status, PaymentStatus.Pending),
+        ),
+      )
       .returning({ invoiceId: payments.invoiceId });
 
     return updated[0]?.invoiceId;

@@ -17,5 +17,20 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7
+    container_name: payment-redis
+    restart: unless-stopped
+    ports:
+      - '6380:6379'
+    volumes:
+      - payment_redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   payment_pgdata:
+  payment_redisdata:

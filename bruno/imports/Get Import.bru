@@ -1,0 +1,21 @@
+meta {
+  name: Get Import
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/imports/{{importId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("status 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

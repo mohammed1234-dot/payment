@@ -1,0 +1,29 @@
+meta {
+  name: Upload Import
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/imports
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  file: @file(fixtures/invoices.csv)
+}
+
+script:post-response {
+  bru.setVar("importId", res.getBody().id);
+}
+
+tests {
+  test("status 202", function () {
+    expect(res.getStatus()).to.equal(202);
+  });
+}

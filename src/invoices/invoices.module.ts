@@ -14,5 +14,6 @@ import { PublicInvoicesController } from './public-invoices.controller.js';
     PaymentPagesController,
   ],
   providers: [InvoicesService, InvoicesRepository],
+  exports: [InvoicesService],
 })
 export class InvoicesModule {}

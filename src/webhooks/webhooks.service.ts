@@ -4,7 +4,7 @@ import { PaymentStatus } from '../database/schema/payment-status.js';
 import { WebhookEventStatus } from '../database/schema/webhook-events-status.js';
 import { StripeService } from '../stripe/stripe.service.js';
 import { WebhooksRepository } from './webhooks.repository.js';
-import { MailService} from '../mail/mail.service.js';
+import { MailService } from '../mail/mail.service.js';
 @Injectable()
 export class WebhooksService {
   private readonly logger = new Logger(WebhooksService.name);
@@ -57,7 +57,7 @@ export class WebhooksService {
         await this.markPaid(event.data.object);
         break;
 
-          case 'checkout.session.async_payment_failed': {
+      case 'checkout.session.async_payment_failed': {
         const invoiceId = await this.webhooksRepository.updatePendingPayment(
           event.data.object.id,
           PaymentStatus.Failed,
@@ -111,15 +111,13 @@ export class WebhooksService {
       paymentIntentId,
     );
     if (changed) {
-      await this.notify(invoice.id,'succeeded');
+      await this.notify(invoice.id, 'succeeded');
     }
-
-
-    
   }
   private async notify(invoiceId: string, status: 'succeeded' | 'failed') {
     try {
-      const ownerEmail = await this.webhooksRepository.findownerEmail(invoiceId);
+      const ownerEmail =
+        await this.webhooksRepository.findownerEmail(invoiceId);
       if (!ownerEmail) {
         this.logger.warn(`No owner email found for invoice ${invoiceId}`);
         return;

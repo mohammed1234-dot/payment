@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import nodemailer from 'nodemailer';
-import type {Invoice } from '../database/schema/index.js';
+import type { Invoice } from '../database/schema/index.js';
 
 @Injectable()
 export class MailService {
-
   private readonly nodemailerTransporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: Number(process.env.MAIL_PORT),
@@ -16,7 +15,7 @@ export class MailService {
     greetingTimeout: 10_000,
     socketTimeout: 10_000,
   });
- async sendPaymentSucceeded(to: string, invoice: Invoice) {
+  async sendPaymentSucceeded(to: string, invoice: Invoice) {
     await this.nodemailerTransporter.sendMail({
       from: process.env.MAIL_FROM,
       to,
@@ -24,7 +23,27 @@ export class MailService {
       text: `Invoice ${invoice.invoiceNumber} for ${invoice.amount / 100} ${invoice.currency.toUpperCase()} was paid.`,
     });
   }
-   async sendPaymentFailed(to: string, invoice: Invoice) {
+  async sendImportCompleted(to: string, fileName: string, count: number) {
+    await this.nodemailerTransporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to,
+      subject: `Import of ${fileName} finished`,
+      text: `${count} invoices from ${fileName} were imported and marked as paid.`,
+    });
+  }
+
+  async sendImportFailed(to: string, fileName: string, errors: string[]) {
+    await this.nodemailerTransporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to,
+      subject: `Import of ${fileName} failed`,
+      text: [`Nothing was imported from ${fileName}.`, '', ...errors].join(
+        '\n',
+      ),
+    });
+  }
+
+  async sendPaymentFailed(to: string, invoice: Invoice) {
     await this.nodemailerTransporter.sendMail({
       from: process.env.MAIL_FROM,
       to,

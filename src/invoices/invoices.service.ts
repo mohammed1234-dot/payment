@@ -16,6 +16,7 @@ import {
   toInvoiceResponse,
   toPublicInvoiceResponse,
 } from './dto/invoice-response.dto.js';
+import type { ImportRow } from '../imports/dto/import-row.dto.js';
 
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -152,5 +153,21 @@ export class InvoicesService {
 
       throw error;
     }
+  }
+  async createPaidInvoices(userId: string, rows: ImportRow[]) {
+    const created = await this.invoicesRepository.createMany(
+      rows.map((row) => ({
+        userId,
+        invoiceNumber: generateInvoiceNumber(),
+        description: row.description,
+        amount: row.amount,
+        currency: row.currency,
+        status: InvoiceStatus.Paid,
+        paidAt: row.paid_at,
+        publicTokenHash: hashToken(randomBytes(32).toString('base64url')),
+      })),
+    );
+
+    return created.length;
   }
 }

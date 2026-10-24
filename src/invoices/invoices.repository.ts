@@ -110,4 +110,11 @@ export class InvoicesRepository {
         ),
       );
   }
+  async createMany(invoicesData: NewInvoice[]): Promise<Invoice[]> {
+    const insertedInvoices = await this.database.db
+      .insert(invoices)
+      .values(invoicesData)
+      .returning();
+    return insertedInvoices;
+  }
 }

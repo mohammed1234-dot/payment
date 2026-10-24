@@ -7,6 +7,8 @@ export const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string().startsWith('postgresql://'),
   JWT_SECRET: z.string(),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.coerce.number().default(6380),
   APP_URL: z.url().default('http://localhost:3000/v1'),
   STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_'),
